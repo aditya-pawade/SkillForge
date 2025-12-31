@@ -55,6 +55,7 @@ router.post('/register', [
       username,
       email,
       password,
+      baseClass,
       backgroundDeclaration: req.body.backgroundDeclaration || {}
     };
 
@@ -76,6 +77,7 @@ router.post('/register', [
         username: user.username,
         email: user.email,
         level: user.level,
+        currentClass: user.currentClass,
         systemRune: user.systemRune,
         adaptability: user.adaptability,
         resilience: user.resilience,

@@ -4,30 +4,12 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
-
-// Pages
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
-import Profile from './pages/Profile/Profile';
-import Quests from './pages/Quests/Quests';
-import Inventory from './pages/Inventory/Inventory';
-import Skills from './pages/Skills/Skills';
-import Guilds from './pages/Guilds/Guilds';
-import Leaderboards from './pages/Leaderboards/Leaderboards';
-import Chat from './pages/Chat/Chat';
-
-// Components
-import LoadingScreen from './components/UI/LoadingScreen';
-import Navbar from './components/Layout/Navbar';
-import Sidebar from './components/Layout/Sidebar';
-
-// Styles
-import './styles/App.css';
 import './styles/globals.css';
-import './styles/animations.css';
 
-// Create QueryClient for React Query
+// Create QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -37,6 +19,16 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Loading Screen Component
+const LoadingScreen = () => (
+  <div className="loading-screen">
+    <div className="loading-content">
+      <div className="loading-spinner"></div>
+      <h2>Loading SkillForge...</h2>
+    </div>
+  </div>
+);
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -58,152 +50,75 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-// Main Layout component
-const Layout = ({ children }) => {
-  return (
-    <div className="app-layout">
-      <Navbar />
-      <div className="app-content">
-        <Sidebar />
-        <main className="main-content">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
-};
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <div className="App">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } />
-              <Route path="/register" element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
-              } />
-              
-              {/* Protected Routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <SocketProvider>
-                    <Layout>
+        <SocketProvider>
+          <Router>
+            <div className="App">
+              <Routes>
+                {/* Public Routes */}
+                <Route 
+                  path="/login" 
+                  element={
+                    <PublicRoute>
+                      <Login />
+                    </PublicRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/register" 
+                  element={
+                    <PublicRoute>
+                      <Register />
+                    </PublicRoute>
+                  } 
+                />
+                
+                {/* Protected Routes */}
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
                       <Dashboard />
-                    </Layout>
-                  </SocketProvider>
-                </ProtectedRoute>
-              } />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Default redirect */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
               
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <SocketProvider>
-                    <Layout>
-                      <Profile />
-                    </Layout>
-                  </SocketProvider>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/quests" element={
-                <ProtectedRoute>
-                  <SocketProvider>
-                    <Layout>
-                      <Quests />
-                    </Layout>
-                  </SocketProvider>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/inventory" element={
-                <ProtectedRoute>
-                  <SocketProvider>
-                    <Layout>
-                      <Inventory />
-                    </Layout>
-                  </SocketProvider>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/skills" element={
-                <ProtectedRoute>
-                  <SocketProvider>
-                    <Layout>
-                      <Skills />
-                    </Layout>
-                  </SocketProvider>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/guilds" element={
-                <ProtectedRoute>
-                  <SocketProvider>
-                    <Layout>
-                      <Guilds />
-                    </Layout>
-                  </SocketProvider>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/leaderboards" element={
-                <ProtectedRoute>
-                  <SocketProvider>
-                    <Layout>
-                      <Leaderboards />
-                    </Layout>
-                  </SocketProvider>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/chat" element={
-                <ProtectedRoute>
-                  <SocketProvider>
-                    <Layout>
-                      <Chat />
-                    </Layout>
-                  </SocketProvider>
-                </ProtectedRoute>
-              } />
-              
-              {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-            
-            {/* Global notifications */}
-            <Toaster 
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#1a1a1a',
-                  color: '#fff',
-                  border: '1px solid #333',
-                },
-                success: {
-                  iconTheme: {
-                    primary: '#4CAF50',
-                    secondary: '#fff',
+              {/* Global notifications */}
+              <Toaster 
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: '#1a1a2e',
+                    color: '#fff',
+                    border: '1px solid #64ffda',
                   },
-                },
-                error: {
-                  iconTheme: {
-                    primary: '#f44336',
-                    secondary: '#fff',
+                  success: {
+                    iconTheme: {
+                      primary: '#4CAF50',
+                      secondary: '#fff',
+                    },
                   },
-                },
-              }}
-            />
-          </div>
-        </Router>
+                  error: {
+                    iconTheme: {
+                      primary: '#f44336',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
+            </div>
+          </Router>
+        </SocketProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -13,6 +13,7 @@ const { connectDB } = require('./config/database');
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const statsRoutes = require('./routes/stats');
 // const questRoutes = require('./routes/quests');  // Temporarily disabled - still using Mongoose
 // const guildRoutes = require('./routes/guilds');   // Temporarily disabled - still using Mongoose
 const leaderboardRoutes = require('./routes/leaderboards');
@@ -59,6 +60,7 @@ socketHandler(io);
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', authMiddleware, userRoutes);
+app.use('/api/stats', authMiddleware, statsRoutes);
 // app.use('/api/quests', authMiddleware, questRoutes);      // Temporarily disabled
 // app.use('/api/guilds', authMiddleware, guildRoutes);      // Temporarily disabled
 app.use('/api/leaderboards', leaderboardRoutes);

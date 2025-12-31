@@ -11,6 +11,7 @@ class User {
     this.password = data.password;
     this.level = data.level || 1;
     this.experience = data.experience || 0;
+    this.currentClass = data.currentClass || data.current_class || null;
     
     // ARCHES Stats
     this.adaptability = data.adaptability || 0;
@@ -19,6 +20,9 @@ class User {
     this.health = data.health || 0;
     this.efficiency = data.efficiency || 0;
     this.serendipity = data.serendipity || 0;
+    
+    // Stat Points System
+    this.statPoints = data.stat_points || 0;
     
     // Background Declaration
     this.backgroundDeclaration = typeof data.background_declaration === 'string' 
@@ -69,23 +73,25 @@ class User {
       
       const [result] = await db.execute(`
         INSERT INTO users (
-          username, email, password, level, experience,
-          adaptability, resilience, charisma, health, efficiency, serendipity,
+          username, email, password, level, experience, currentClass,
+          adaptability, resilience, charisma, health, efficiency, serendipity, stat_points,
           background_declaration, system_rune,
           regression_count, total_experience_gained, peak_level_achieved, classes_unlocked
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         userData.username,
         userData.email,
         hashedPassword,
         1, // level
         0, // experience
+        userData.baseClass || null, // currentClass
         initialStats.adaptability,
         initialStats.resilience,
         initialStats.charisma,
         initialStats.health,
         initialStats.efficiency,
         initialStats.serendipity,
+        0, // stat_points (starts with 0)
         JSON.stringify(userData.backgroundDeclaration),
         JSON.stringify(systemRune),
         0, // regression_count
@@ -246,95 +252,15 @@ class User {
 
   // Calculate initial ARCHES stats based on background declaration
   static calculateInitialStats(backgroundDeclaration) {
+    // Generate random stats from 1 to 5 for new users
     const stats = {
-      adaptability: 5,      // Base stats
-      resilience: 5,
-      charisma: 5,
-      health: 5,
-      efficiency: 5,
-      serendipity: 5
+      adaptability: Math.floor(Math.random() * 5) + 1,
+      resilience: Math.floor(Math.random() * 5) + 1,
+      charisma: Math.floor(Math.random() * 5) + 1,
+      health: Math.floor(Math.random() * 5) + 1,
+      efficiency: Math.floor(Math.random() * 5) + 1,
+      serendipity: Math.floor(Math.random() * 5) + 1
     };
-
-    if (!backgroundDeclaration) return stats;
-
-    // Analyze learning subjects
-    if (backgroundDeclaration.subjects && backgroundDeclaration.subjects.length > 0) {
-      backgroundDeclaration.subjects.forEach(subject => {
-        switch (subject.toLowerCase()) {
-          case 'programming':
-          case 'computer science':
-            stats.adaptability += 2;
-            stats.efficiency += 1;
-            break;
-          case 'mathematics':
-          case 'physics':
-            stats.adaptability += 1;
-            stats.efficiency += 2;
-            break;
-          case 'art':
-          case 'design':
-            stats.serendipity += 2;
-            stats.charisma += 1;
-            break;
-          case 'sports':
-          case 'fitness':
-            stats.health += 2;
-            stats.resilience += 1;
-            break;
-          case 'psychology':
-          case 'sociology':
-            stats.charisma += 2;
-            stats.serendipity += 1;
-            break;
-        }
-      });
-    }
-
-    // Analyze career goals
-    if (backgroundDeclaration.careerGoals && backgroundDeclaration.careerGoals.length > 0) {
-      backgroundDeclaration.careerGoals.forEach(career => {
-        switch (career.toLowerCase()) {
-          case 'software engineer':
-          case 'developer':
-            stats.adaptability += 1;
-            stats.efficiency += 1;
-            break;
-          case 'teacher':
-          case 'educator':
-            stats.charisma += 1;
-            stats.resilience += 1;
-            break;
-          case 'entrepreneur':
-          case 'business owner':
-            stats.charisma += 1;
-            stats.serendipity += 1;
-            break;
-          case 'researcher':
-          case 'scientist':
-            stats.adaptability += 1;
-            stats.efficiency += 1;
-            break;
-        }
-      });
-    }
-
-    // Analyze current activities
-    if (backgroundDeclaration.currentActivities && backgroundDeclaration.currentActivities.length > 0) {
-      backgroundDeclaration.currentActivities.forEach(activity => {
-        if (activity.toLowerCase().includes('study')) {
-          stats.efficiency += 1;
-        }
-        if (activity.toLowerCase().includes('exercise')) {
-          stats.health += 1;
-        }
-        if (activity.toLowerCase().includes('social')) {
-          stats.charisma += 1;
-        }
-        if (activity.toLowerCase().includes('creative')) {
-          stats.serendipity += 1;
-        }
-      });
-    }
 
     return stats;
   }
@@ -374,26 +300,59 @@ class User {
       const levelsGained = newLevel - this.level;
       this.level = newLevel;
       
-      // Award stat points (2 points per level)
-      const statPoints = levelsGained * 2;
-      this.distributeStatPoints(statPoints);
+      // Award stat points (3 points per level)
+      const statPointsEarned = levelsGained * 3;
+      this.statPoints += statPointsEarned;
       
       await this.save();
-      return { leveledUp: true, newLevel: this.level, statPoints };
+      return { leveledUp: true, newLevel: this.level, statPointsEarned };
     }
     
     await this.save();
     return { leveledUp: false };
   }
 
-  // Distribute stat points based on class and background
-  distributeStatPoints(points) {
-    // Simple distribution for now - can be made more sophisticated
-    const statNames = ['agility', 'resilience', 'charisma', 'health', 'efficiency', 'serendipity'];
+  // Allocate stat points to specific ARCHES stats
+  async allocateStatPoints(statAllocations) {
+    const db = await getDB();
     
-    for (let i = 0; i < points; i++) {
-      const randomStat = statNames[Math.floor(Math.random() * statNames.length)];
-      this[randomStat] += 1;
+    try {
+      // Validate stat allocations
+      const validStats = ['adaptability', 'resilience', 'charisma', 'health', 'efficiency', 'serendipity'];
+      let totalPointsToAllocate = 0;
+      
+      for (const [stat, points] of Object.entries(statAllocations)) {
+        if (!validStats.includes(stat)) {
+          throw new Error(`Invalid stat: ${stat}`);
+        }
+        if (points < 0 || !Number.isInteger(points)) {
+          throw new Error(`Invalid point allocation for ${stat}: ${points}`);
+        }
+        totalPointsToAllocate += points;
+      }
+      
+      if (totalPointsToAllocate > this.statPoints) {
+        throw new Error(`Not enough stat points. Available: ${this.statPoints}, Requested: ${totalPointsToAllocate}`);
+      }
+      
+      // Apply stat allocations
+      for (const [stat, points] of Object.entries(statAllocations)) {
+        this[stat] += points;
+      }
+      this.statPoints -= totalPointsToAllocate;
+      
+      // Update database
+      await db.execute(`
+        UPDATE users SET 
+        adaptability = ?, resilience = ?, charisma = ?, health = ?, efficiency = ?, serendipity = ?, stat_points = ?
+        WHERE id = ?
+      `, [
+        this.adaptability, this.resilience, this.charisma, this.health, this.efficiency, this.serendipity, this.statPoints, this.id
+      ]);
+      
+      return true;
+    } catch (error) {
+      throw error;
     }
   }
 

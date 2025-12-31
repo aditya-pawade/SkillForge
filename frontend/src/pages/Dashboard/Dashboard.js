@@ -1,248 +1,211 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import StatsPanel from '../../components/Dashboard/StatsPanel';
-import RegressionPanel from '../../components/Dashboard/RegressionPanel';
-import QuestPanel from '../../components/Dashboard/QuestPanel';
-import SkillsPanel from '../../components/Dashboard/SkillsPanel';
-import RaidPanel from '../../components/Dashboard/RaidPanel';
-import NotificationPanel from '../../components/Dashboard/NotificationPanel';
+import { useSocket } from '../../context/SocketContext';
+import SystemInterface from './SystemInterface';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { user } = useAuth();
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, logout } = useAuth();
+  const { connected } = useSocket();
+  const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/users/dashboard', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setDashboardData(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (!user) {
     return (
       <div className="dashboard-loading">
         <div className="loading-spinner"></div>
-        <p>Loading your RPG data...</p>
+        Loading Dashboard...
       </div>
     );
   }
 
-  const regressionBonuses = dashboardData?.regressionBonuses || {};
-  const hasRegressed = user?.regression?.totalCycles > 0;
-
   return (
     <div className="dashboard">
-      {/* Header with player info and regression status */}
-      <div className="dashboard-header">
-        <div className="player-info">
-          <div className="player-avatar">
-            <img 
-              src={user?.profile?.avatar || '/default-avatar.png'} 
-              alt="Player Avatar"
-            />
-            {hasRegressed && (
-              <div className="regression-badge">
-                <span className="cycle-count">{user.regression.totalCycles}</span>
-                <span className="regression-icon">🔄</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="player-details">
-            <h1>{user?.username}</h1>
-            <div className="player-title">
-              {user?.profile?.title || user?.class?.currentClass}
-            </div>
-            
-            <div className="level-info">
-              <span className="level">Lv. {user?.level}</span>
-              {hasRegressed && (
-                <span className="cycle-info">
-                  Cycle {user.regression.cycle} | Max Lv.{user.regression.maxLevelReached}
-                </span>
-              )}
-            </div>
-            
-            {/* Experience Bar with Regression Multiplier */}
-            <div className="exp-bar-container">
-              <div className="exp-bar">
-                <div 
-                  className="exp-fill"
-                  style={{ 
-                    width: `${(user?.experience / user?.experienceToNext) * 100}%` 
-                  }}
-                />
-                <span className="exp-text">
-                  {user?.experience} / {user?.experienceToNext} XP
-                  {regressionBonuses.experienceMultiplier > 1 && (
-                    <span className="bonus-multiplier">
-                      (×{regressionBonuses.experienceMultiplier.toFixed(1)})
-                    </span>
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="quick-actions">
-          <button className="quick-action-btn" onClick={() => window.location.href = '/quests'}>
-            <span className="icon">⚔️</span>
-            Quests
-          </button>
-          <button className="quick-action-btn" onClick={() => window.location.href = '/raids'}>
-            <span className="icon">🏛️</span>
-            Raids
-          </button>
-          <button className="quick-action-btn" onClick={() => window.location.href = '/guilds'}>
-            <span className="icon">🛡️</span>
-            Guild
-          </button>
-          {user?.level >= 50 && (
-            <button className="quick-action-btn regression-btn">
-              <span className="icon">🔄</span>
-              Regress
+      <header className="dashboard-header">
+        <div className="dashboard-nav">
+          <h1 className="dashboard-title">SkillForge</h1>
+          <div className="connection-status">
+            <span className={`status-indicator ${connected ? 'connected' : 'disconnected'}`}>
+              {connected ? '🟢 Online' : '🔴 Offline'}
+            </span>
+            <button onClick={logout} className="logout-button">
+              Logout
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* Main Dashboard Grid */}
-      <div className="dashboard-grid">
-        {/* Stats Panel */}
-        <div className="dashboard-section">
-          <StatsPanel 
-            user={user} 
-            regressionBonuses={regressionBonuses}
-            className="stats-panel"
-          />
-        </div>
-
-        {/* Regression Panel (if user has regressed) */}
-        {hasRegressed && (
-          <div className="dashboard-section">
-            <RegressionPanel 
-              user={user}
-              regressionData={dashboardData?.regressionData}
-              className="regression-panel"
-            />
           </div>
-        )}
-
-        {/* Active Quests */}
-        <div className="dashboard-section">
-          <QuestPanel 
-            activeQuests={dashboardData?.activeQuests || []}
-            availableQuests={dashboardData?.availableQuests || []}
-            regressionBonuses={regressionBonuses}
-            className="quest-panel"
-          />
         </div>
-
-        {/* Skills Overview */}
-        <div className="dashboard-section">
-          <SkillsPanel 
-            skills={user?.skills || []}
-            retainedSkills={user?.regression?.retainedSkills || []}
-            regressionBonuses={regressionBonuses}
-            className="skills-panel"
-          />
+        
+        {/* Tab Navigation */}
+        <div className="tab-navigation">
+          <button 
+            className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('overview')}
+          >
+            <span className="tab-icon">🏠</span>
+            Overview
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'system' ? 'active' : ''}`}
+            onClick={() => setActiveTab('system')}
+          >
+            <span className="tab-icon">⚙️</span>
+            System
+          </button>
         </div>
+      </header>
 
-        {/* Available Raids */}
-        <div className="dashboard-section">
-          <RaidPanel 
-            availableRaids={dashboardData?.availableRaids || []}
-            activeRaids={dashboardData?.activeRaids || []}
-            regressionUnlocks={dashboardData?.regressionUnlocks || {}}
-            className="raid-panel"
-          />
-        </div>
-
-        {/* Notifications & Updates */}
-        <div className="dashboard-section">
-          <NotificationPanel 
-            notifications={dashboardData?.notifications || []}
-            achievements={dashboardData?.recentAchievements || []}
-            className="notification-panel"
-          />
-        </div>
-
-        {/* Guild Info (if in guild) */}
-        {user?.guild?.guildId && (
-          <div className="dashboard-section">
-            <div className="card guild-card">
-              <h3>Guild: {dashboardData?.guildInfo?.name}</h3>
-              <div className="guild-stats">
-                <div className="stat">
-                  <span className="label">Level</span>
-                  <span className="value">{dashboardData?.guildInfo?.level}</span>
+      <main className="dashboard-main">
+        {activeTab === 'overview' && (
+          <div className="dashboard-grid">
+            {/* User Profile Card */}
+            <div className="dashboard-card user-profile">
+              <h2>Hunter Profile</h2>
+              <div className="profile-info">
+                <div className="profile-header">
+                  <div className="avatar">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="user-details">
+                    <h3>{user.username}</h3>
+                    <p className="level">Level {user.level}</p>
+                  </div>
                 </div>
-                <div className="stat">
-                  <span className="label">Members</span>
-                  <span className="value">{dashboardData?.guildInfo?.memberCount}</span>
+                
+                {user.systemRune && (
+                  <div className="system-rune">
+                    <h4>System Rune</h4>
+                    <div className="rune-info">
+                      <span className={`rune-rank rank-${user.systemRune.rank?.toLowerCase()}`}>
+                        {user.systemRune.rank}-Rank
+                      </span>
+                      <p className="rune-name">{user.systemRune.name}</p>
+                      <p className="rune-category">{user.systemRune.category}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ARCHES Stats */}
+            <div className="dashboard-card arches-stats">
+              <h2>ARCHES Stats</h2>
+              <div className="stats-grid">
+                <div className="stat-item">
+                  <span className="stat-label">Adaptability</span>
+                  <div className="stat-bar">
+                    <div 
+                      className="stat-fill adaptability" 
+                      style={{ width: `${(user.adaptability / 20) * 100}%` }}
+                    ></div>
+                    <span className="stat-value">{user.adaptability}</span>
+                  </div>
                 </div>
-                <div className="stat">
-                  <span className="label">Rank</span>
-                  <span className="value">#{dashboardData?.guildInfo?.rank}</span>
+                
+                <div className="stat-item">
+                  <span className="stat-label">Resilience</span>
+                  <div className="stat-bar">
+                    <div 
+                      className="stat-fill resilience" 
+                      style={{ width: `${(user.resilience / 20) * 100}%` }}
+                    ></div>
+                    <span className="stat-value">{user.resilience}</span>
+                  </div>
+                </div>
+                
+                <div className="stat-item">
+                  <span className="stat-label">Charisma</span>
+                  <div className="stat-bar">
+                    <div 
+                      className="stat-fill charisma" 
+                      style={{ width: `${(user.charisma / 20) * 100}%` }}
+                    ></div>
+                    <span className="stat-value">{user.charisma}</span>
+                  </div>
+                </div>
+                
+                <div className="stat-item">
+                  <span className="stat-label">Health</span>
+                  <div className="stat-bar">
+                    <div 
+                      className="stat-fill health" 
+                      style={{ width: `${(user.health / 20) * 100}%` }}
+                    ></div>
+                    <span className="stat-value">{user.health}</span>
+                  </div>
+                </div>
+                
+                <div className="stat-item">
+                  <span className="stat-label">Efficiency</span>
+                  <div className="stat-bar">
+                    <div 
+                      className="stat-fill efficiency" 
+                      style={{ width: `${(user.efficiency / 20) * 100}%` }}
+                    ></div>
+                    <span className="stat-value">{user.efficiency}</span>
+                  </div>
+                </div>
+                
+                <div className="stat-item">
+                  <span className="stat-label">Serendipity</span>
+                  <div className="stat-bar">
+                    <div 
+                      className="stat-fill serendipity" 
+                      style={{ width: `${(user.serendipity / 20) * 100}%` }}
+                    ></div>
+                    <span className="stat-value">{user.serendipity}</span>
+                  </div>
                 </div>
               </div>
-              <button className="btn btn-secondary">View Guild</button>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="dashboard-card quick-actions">
+              <h2>Quick Actions</h2>
+              <div className="action-buttons">
+                <button className="action-button">
+                  <span className="action-icon">⚡</span>
+                  Start Quest
+                </button>
+                <button className="action-button">
+                  <span className="action-icon">🎯</span>
+                  View Skills
+                </button>
+                <button className="action-button">
+                  <span className="action-icon">👥</span>
+                  Join Guild
+                </button>
+                <button className="action-button">
+                  <span className="action-icon">🏆</span>
+                  Leaderboard
+                </button>
+              </div>
+            </div>
+
+            {/* System Status */}
+            <div className="dashboard-card system-status">
+              <h2>System Status</h2>
+              <div className="status-info">
+                <div className="status-item">
+                  <span className="status-label">Server Connection</span>
+                  <span className={`status-value ${connected ? 'online' : 'offline'}`}>
+                    {connected ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
+                <div className="status-item">
+                  <span className="status-label">Account Status</span>
+                  <span className="status-value online">Active</span>
+                </div>
+                <div className="status-item">
+                  <span className="status-label">Last Login</span>
+                  <span className="status-value">Just now</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Leaderboard Preview */}
-        <div className="dashboard-section">
-          <div className="card leaderboard-card">
-            <h3>Global Rankings</h3>
-            <div className="leaderboard-preview">
-              <div className="rank-item">
-                <span className="rank">Your Level Rank:</span>
-                <span className="value">#{dashboardData?.rankings?.level || '---'}</span>
-              </div>
-              {hasRegressed && (
-                <div className="rank-item">
-                  <span className="rank">Regression Rank:</span>
-                  <span className="value">#{dashboardData?.rankings?.regression || '---'}</span>
-                </div>
-              )}
-              <div className="rank-item">
-                <span className="rank">Guild Rank:</span>
-                <span className="value">#{dashboardData?.rankings?.guild || '---'}</span>
-              </div>
-            </div>
-            <button className="btn btn-secondary">View All Rankings</button>
-          </div>
-        </div>
-      </div>
-
-      {/* Regression Modal (when user clicks regress button) */}
-      {user?.level >= 50 && (
-        <div className="regression-modal-trigger">
-          {/* This would open a detailed regression confirmation modal */}
-        </div>
-      )}
+        {activeTab === 'system' && (
+          <SystemInterface user={user} connected={connected} />
+        )}
+      </main>
     </div>
   );
 };

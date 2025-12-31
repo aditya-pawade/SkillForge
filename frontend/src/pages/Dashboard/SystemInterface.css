@@ -1,0 +1,396 @@
+/* RPG Status Window Interface */
+.system-interface {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at center, rgba(15, 10, 5, 0.95) 0%, rgba(5, 5, 5, 0.98) 100%);
+  padding: 20px;
+  font-family: 'Cinzel', serif;
+  color: #d4af37;
+}
+
+.status-window {
+  width: 100%;
+  max-width: 600px;
+  background: linear-gradient(
+    145deg,
+    rgba(20, 15, 10, 0.95) 0%,
+    rgba(40, 30, 20, 0.9) 50%,
+    rgba(20, 15, 10, 0.95) 100%
+  );
+  border: 3px solid #d4af37;
+  border-radius: 15px;
+  position: relative;
+  box-shadow: 
+    0 0 30px rgba(212, 175, 55, 0.5),
+    inset 0 0 20px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+/* Ornate Border Decorations */
+.ornate-border-top,
+.ornate-border-bottom {
+  height: 20px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    #d4af37 20%,
+    #f4e4bc 50%,
+    #d4af37 80%,
+    transparent 100%
+  );
+  position: relative;
+}
+
+.ornate-border-top::before,
+.ornate-border-bottom::before {
+  content: '◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊ ◊';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  color: #8b6914;
+  letter-spacing: 8px;
+}
+
+/* Window Header */
+.window-header {
+  position: relative;
+  padding: 20px 0 15px 0;
+  text-align: center;
+  border-bottom: 2px solid #8b6914;
+}
+
+.window-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #f4e4bc;
+  text-shadow: 
+    0 0 10px rgba(212, 175, 55, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.8);
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: 2px solid #8b6914;
+  color: #d4af37;
+  font-size: 18px;
+  font-weight: bold;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background: #8b6914;
+  color: #f4e4bc;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+/* Character Information */
+.character-info {
+  padding: 25px 30px;
+}
+
+.basic-info {
+  margin-bottom: 25px;
+}
+
+.info-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.info-label {
+  color: #f4e4bc;
+  margin-right: 8px;
+  font-size: 13px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.info-value {
+  color: #d4af37;
+  margin-right: 20px;
+  text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+}
+
+.info-value.nickname {
+  color: #87ceeb;
+}
+
+.info-value.rank {
+  color: #ff6b47;
+  font-weight: bold;
+}
+
+.info-value.level {
+  color: #90ee90;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.info-value.class {
+  color: #dda0dd;
+  font-weight: bold;
+}
+
+/* Expandable Sections */
+.expandable-section {
+  margin-bottom: 15px;
+  border: 2px solid #8b6914;
+  border-radius: 8px;
+  background: rgba(40, 30, 20, 0.3);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+  background: linear-gradient(90deg,
+    rgba(139, 105, 20, 0.3) 0%,
+    rgba(212, 175, 55, 0.2) 50%,
+    rgba(139, 105, 20, 0.3) 100%
+  );
+  border-bottom: 1px solid #8b6914;
+  transition: all 0.3s ease;
+}
+
+.section-header:hover {
+  background: linear-gradient(90deg,
+    rgba(139, 105, 20, 0.5) 0%,
+    rgba(212, 175, 55, 0.3) 50%,
+    rgba(139, 105, 20, 0.5) 100%
+  );
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #f4e4bc;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.expand-arrow {
+  font-size: 16px;
+  color: #d4af37;
+  transition: transform 0.3s ease;
+}
+
+.expand-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.section-content {
+  padding: 15px;
+  background: rgba(20, 15, 10, 0.5);
+  font-size: 13px;
+}
+
+/* Stats Section */
+.stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+}
+
+.stat-name {
+  color: #f4e4bc;
+  font-weight: bold;
+}
+
+.stat-value {
+  color: #90ee90;
+  font-weight: bold;
+  font-size: 16px;
+  text-shadow: 0 0 5px rgba(144, 238, 144, 0.5);
+}
+
+.stat-points {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #8b6914;
+}
+
+.stat-points-label {
+  color: #f4e4bc;
+  font-weight: bold;
+}
+
+.stat-points-value {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 18px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+/* Title Section */
+.title-item {
+  color: #87ceeb;
+  margin-bottom: 5px;
+  font-size: 12px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Skills Section */
+.skills-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.skills-category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-label {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 12px;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.skills-list {
+  color: #f4e4bc;
+  font-size: 11px;
+  line-height: 1.5;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Runes Section */
+.runes-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.runes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.rune-item {
+  color: #dda0dd;
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(221, 160, 221, 0.5);
+  padding: 5px;
+  background: rgba(221, 160, 221, 0.1);
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Additional Skills Section */
+.additional-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.additional-skill {
+  color: #87ceeb;
+  font-size: 12px;
+  padding: 5px;
+  background: rgba(135, 206, 235, 0.1);
+  border-radius: 4px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.additional-skill.locked {
+  color: #8b6914;
+  background: rgba(139, 105, 20, 0.1);
+  font-style: italic;
+}
+
+/* Animation Effects */
+@keyframes glow {
+  0%, 100% { 
+    text-shadow: 
+      0 0 5px rgba(212, 175, 55, 0.5),
+      0 0 10px rgba(212, 175, 55, 0.3),
+      0 0 15px rgba(212, 175, 55, 0.1);
+  }
+  50% { 
+    text-shadow: 
+      0 0 10px rgba(212, 175, 55, 0.8),
+      0 0 20px rgba(212, 175, 55, 0.5),
+      0 0 30px rgba(212, 175, 55, 0.3);
+  }
+}
+
+.window-title {
+  animation: glow 3s ease-in-out infinite;
+}
+
+/* Additional Visual Effects */
+.status-window::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #d4af37, #8b6914, #d4af37, #8b6914);
+  border-radius: 15px;
+  z-index: -1;
+  opacity: 0.7;
+  animation: borderGlow 4s ease-in-out infinite;
+}
+
+@keyframes borderGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .system-interface {
+    padding: 10px;
+  }
+  
+  .status-window {
+    max-width: 95%;
+  }
+  
+  .character-info {
+    padding: 20px 15px;
+  }
+  
+  .window-title {
+    font-size: 20px;
+  }
+  
+  .info-row {
+    font-size: 12px;
+  }
+  
+  .runes-grid {
+    grid-template-columns: 1fr;
+  }
+}
